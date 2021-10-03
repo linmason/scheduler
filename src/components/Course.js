@@ -1,7 +1,7 @@
 import React, {useRef} from 'react';
 import useDoubleClick from 'use-double-click';
 import {hasConflict, getCourseNumber, getCourseTerm, timeParts} from '../utilities/times';
-import {setData} from '../utilities/firebase';
+import {setData, useUserState} from '../utilities/firebase';
  
 const getCourseMeetingData = course => {
     const meets = prompt('Enter meeting data: MTuWThF hh:mm-hh:mm:', course.meets);
@@ -25,13 +25,14 @@ const Course = ({ course, selected, setSelected }) => {
     const buttonRef = useRef();
     const isSelected = selected.includes(course);
     const isDisabled = !isSelected && hasConflict(course, selected);
+    const [user] = useUserState();
     const style = { backgroundColor: isDisabled? 'lightgrey' : isSelected ? 'lightgreen' : 'white' };
     useDoubleClick({
         onSingleClick: 
-            isDisabled? null : () => setSelected(toggle(course, selected))
+            isDisabled? () => null : () => setSelected(toggle(course, selected))
         ,
-        onDoubleClick:
-            () => reschedule(course, getCourseMeetingData(course))
+        onDoubleClick: 
+            !user ? () => null : () => reschedule(course, getCourseMeetingData(course))
         ,
         ref: buttonRef,
         latency: 250
